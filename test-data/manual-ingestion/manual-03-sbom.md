@@ -1,0 +1,2 @@
+# Prueba manual: SBOM y dependencias
+Genere SBOM CycloneDX por build, firme artefactos y asocie versión, commit y pipeline. Compare componentes con avisos, pero valide alcanzabilidad y versión real. Bloquee dependencias críticas explotables y documente excepciones con vencimiento. Documento legítimo para ingesta manual.

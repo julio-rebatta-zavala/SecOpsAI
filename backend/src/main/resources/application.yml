@@ -1,0 +1,97 @@
+server:
+  port: 8080
+  servlet:
+    session: {cookie: {http-only: true, secure: true, same-site: strict}}
+spring:
+  application: {name: secops-ai}
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/secops}
+    username: ${SPRING_DATASOURCE_USERNAME:secops}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+  jpa:
+    open-in-view: false
+    hibernate: {ddl-auto: validate}
+    properties: {hibernate.jdbc.time_zone: UTC}
+  flyway: 
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+    validate-on-migrate: true
+    validate-migration-naming: true
+    fail-on-missing-locations: true
+  servlet.multipart: {max-file-size: 5MB, max-request-size: 6MB}
+  ai:
+    openai:
+      base-url: https://openrouter.ai/api/v1
+      api-key: ${OPENROUTER_API_KEY:}
+      timeout: 25s
+      max-retries: 0
+      custom-headers:
+        HTTP-Referer: https://localhost/secops-ai
+        X-Title: SecOps AI Assistant
+      chat:
+        base-url: https://openrouter.ai/api/v1
+        api-key: ${OPENROUTER_API_KEY:}
+        model: ${OPENROUTER_CHAT_MODEL:nvidia/nemotron-3-ultra-550b-a55b:free}
+        temperature: 0.1
+        max-tokens: 1200
+      embedding:
+        base-url: https://openrouter.ai/api/v1
+        api-key: ${OPENROUTER_API_KEY:}
+        model: ${OPENROUTER_EMBEDDING_MODEL:nvidia/nemotron-3.5-embed-1b:free}
+        dimensions: ${OPENROUTER_EMBEDDING_DIMENSIONS:1536}
+  web:
+    error:
+      include-message: never
+      include-stacktrace: never
+management:
+  endpoints.web.exposure.include: health,info,metrics,prometheus
+  endpoint.health.show-details: when_authorized
+secops:
+  jwt:
+    secret: ${JWT_SECRET:}
+    issuer: secops-ai
+    audience: secops-web
+    access-minutes: 15
+    refresh-hours: 8
+  encryption-key: ${DATA_ENCRYPTION_KEY:}
+  qdrant:
+    url: ${QDRANT_URL:http://localhost:6333}
+    collection: secops_docs
+    dimensions: ${OPENROUTER_EMBEDDING_DIMENSIONS:1536}
+  nvd:
+    url: https://services.nvd.nist.gov
+    api-key: ${NVD_API_KEY:d5b06f2e-75e6-44ef-bbfe-647172e1f13e}
+  presidio:
+    analyzer-url: ${PRESIDIO_ANALYZER_URL:http://localhost:5001}
+    anonymizer-url: ${PRESIDIO_ANONYMIZER_URL:http://localhost:5002}
+    threshold: 0.55
+  cors-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
+  seed-demo-users: ${SEED_DEMO_USERS:true}
+  policy:
+    max-input-chars: 8000
+    protected-terms: edad,sexo,género,genero,nacionalidad,etnia,raza,religión,religion,discapacidad,orientación sexual,orientacion sexual,zona geográfica,zona geografica
+    injection-patterns: ignore previous instructions,ignore all instructions,ignora las instrucciones,ignora todas las instrucciones,system prompt,prompt del sistema,actúa como,actua como,jailbreak,developer message,revela tus instrucciones,DAN mode
+logging:
+  pattern.console: '{"timestamp":"%d{yyyy-MM-dd''T''HH:mm:ss.SSSXXX}","level":"%level","logger":"%logger{36}","correlationId":"%X{correlationId}","message":"%replace(%msg){''[\r\n]'','' ''}"}%n'
+  level:
+    root: "${LOG_LEVEL:INFO}"
+    com.secops: INFO
+    org.flywaydb.core.internal.util: DEBUG
+resilience4j:
+  circuitbreaker.instances:
+    nvd: {sliding-window-size: 20, minimum-number-of-calls: 8, failure-rate-threshold: 50, wait-duration-in-open-state: 30s}
+    ai: {sliding-window-size: 20, minimum-number-of-calls: 5, failure-rate-threshold: 50, wait-duration-in-open-state: 30s}
+    presidio: {sliding-window-size: 10, minimum-number-of-calls: 4, failure-rate-threshold: 40, wait-duration-in-open-state: 20s}
+    qdrant: {sliding-window-size: 20, minimum-number-of-calls: 5, failure-rate-threshold: 50, wait-duration-in-open-state: 20s}
+  retry.instances:
+    nvd: {max-attempts: 3, wait-duration: 1s, enable-exponential-backoff: true, exponential-backoff-multiplier: 2}
+    ai: {max-attempts: 2, wait-duration: 500ms}
+    presidio: {max-attempts: 2, wait-duration: 200ms}
+  ratelimiter.instances:
+    nvd: {limit-for-period: 5, limit-refresh-period: 30s, timeout-duration: 0}
+    ai: {limit-for-period: 30, limit-refresh-period: 1m, timeout-duration: 0}
+  bulkhead.instances:
+    nvd: {max-concurrent-calls: 10, max-wait-duration: 0}
+    ai: {max-concurrent-calls: 8, max-wait-duration: 0}
+    presidio: {max-concurrent-calls: 12, max-wait-duration: 0}

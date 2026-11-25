@@ -1,0 +1,11 @@
+#!/bin/sh
+set -e
+MVN_VERSION=3.9.12
+BASE="${HOME}/.m2/wrapper/dists/apache-maven-${MVN_VERSION}"
+MVN="$BASE/apache-maven-${MVN_VERSION}/bin/mvn"
+if [ ! -x "$MVN" ]; then
+  mkdir -p "$BASE"; TMP="$BASE/maven.zip"
+  curl -fsSL "https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/${MVN_VERSION}/apache-maven-${MVN_VERSION}-bin.zip" -o "$TMP"
+  unzip -q "$TMP" -d "$BASE"; rm "$TMP"
+fi
+exec "$MVN" "$@"

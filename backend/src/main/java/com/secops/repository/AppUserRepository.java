@@ -1,0 +1,11 @@
+package com.secops.repository;
+
+import com.secops.entity.AppUser;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.*;
+
+public interface AppUserRepository extends JpaRepository<AppUser, UUID> {
+    
+	Optional<AppUser> findByUsernameIgnoreCase(String username);
+    
+}

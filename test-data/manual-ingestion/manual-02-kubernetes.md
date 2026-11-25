@@ -1,0 +1,2 @@
+# Prueba manual: contención en Kubernetes
+Aísle el namespace con NetworkPolicy, preserve eventos y audit logs, identifique service accounts y revise secretos montados. No elimine el pod antes de capturar evidencia si no hay riesgo mayor. Rote credenciales expuestas y redepliegue desde imagen firmada. Documento legítimo para ingesta manual.

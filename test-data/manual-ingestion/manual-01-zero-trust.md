@@ -1,0 +1,2 @@
+# Prueba manual: acceso Zero Trust
+Aplicar verificación explícita, mínimo privilegio y asumir brecha. Para acceso administrativo exija MFA resistente a phishing, dispositivo conforme, sesión corta y autorización just-in-time. Registre elevaciones y revise permisos caducados. Documento legítimo para validar ingesta manual.
